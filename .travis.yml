@@ -1,0 +1,25 @@
+sudo: required
+services:
+- docker
+
+before_install:
+  - docker build -t laurentgilcast/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run laurentgilcast/react-test npm test -- --coverage
+
+  after_success:
+    - docker build -t laurentgilcast/multi-client ./client
+    - docker build -t laurentgilcast/multi-nginx ./nginx
+    - docker build -t laurentgilcast/multi-server ./server
+    - docker build -t laurentgilcast/multi-worker ./worker
+    # login in to docker cli
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    
+    # push to docker hub
+    - docker push laurentgilcast/multi-client
+    - docker push laurentgilcast/multi-nginx
+    - docker push laurentgilcast/multi-server
+    - docker push laurentgilcast/multi-worker
+
+
